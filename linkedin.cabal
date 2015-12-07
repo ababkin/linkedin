@@ -25,4 +25,7 @@ executable linkedin
     , scotty
     , xml-conduit
     , filepath
+    , aws
+    , aeson
+    , time >= 1.5
 
