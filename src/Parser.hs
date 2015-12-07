@@ -9,6 +9,7 @@ import qualified Data.Text                  as T
 import Data.Maybe (listToMaybe)
 import Text.XML.Cursor (Cursor, attributeIs, attribute, content,
   element, child, descendant, ($//), (&|), (&//), (>=>), (&/), ($/))
+import System.FilePath.Posix (takeBaseName)
 
 import Types
 
@@ -38,11 +39,12 @@ currentTitle cursor = T.concat . concat $ cursor $// axis &| content
       >=> attributeIs "class" "title"
       >=> child
 
-currentCompany :: Cursor -> Maybe Company
-currentCompany cursor = Company <$> listToMaybe (cursor $// axis &| extractContent)
+currentLocation :: Cursor -> Text
+currentLocation cursor = T.concat . concat $ cursor $// axis &| content
   where
-    axis = element "p" >=> attributeIs "class" "title"
-      &/ element "strong" >=> attributeIs "class" "highlight"
+    axis = element "div"
+      >=> attributeIs "id" "location"
+      &// element "a"
       >=> child
 
 summary :: Cursor -> Text
@@ -54,7 +56,7 @@ summary cursor = T.concat (cursor $// axis &| extractContent)
       >=> child
 
 experiences :: Cursor -> [Experience]
-experiences cursor = cursor $// collectionAxis &| extractExperience
+experiences cursor = cursor $// collectionAxis &| experience
   where
     collectionAxis = 
           element "div" >=> attributeIs "id" "background-experience"
@@ -64,18 +66,20 @@ experiences cursor = cursor $// collectionAxis &| extractExperience
     titleAxis   = element "h4" &/ element "a" >=> child
     companyAxis = element "h5" &// element "a" >=> child
     spanAxis    = element "span" >=> attributeIs "class" "experience-date-locale" >=> descendant
+    summaryAxis = element "p" >=> child
 
-    extractExperience :: Cursor -> Experience
-    extractExperience cursor = Experience {
+    experience :: Cursor -> Experience
+    experience cursor = Experience {
         eTitle    = T.concat $ cursor $// titleAxis &| extractContent
       , eCompany  = Company $ T.concat $ cursor $// companyAxis &| extractContent
       , eSpan     = T.concat $ cursor $// spanAxis &| extractContent
+      , eSummary  = T.concat $ cursor $// summaryAxis &| extractContent
       }
 
 skills :: Cursor -> [Skill]
-skills cursor = cursor $// skillsAxis &| extractSkill
+skills cursor = cursor $// skillsAxis &| skill
   where
-    skillsAxis = 
+    skillsAxis =
           element "ul" >=> attributeIs "class" "skills-section"
       >=> child
 
@@ -84,25 +88,31 @@ skills cursor = cursor $// skillsAxis &| extractSkill
       &/ element "li"
       &/ element "span"
 
-    extractSkill :: Cursor -> Skill
-    extractSkill c = Skill {
+    skill :: Cursor -> Skill
+    skill c = Skill {
         sName         = T.concat $ attribute "data-endorsed-item-name" c
-      , sEndorsements = c $// endorsementsAxis &| extractEndorsement
+      , sEndorsements = c $// endorsementsAxis &| endorsement
       }
 
-    extractEndorsement :: Cursor -> Endorsement
-    extractEndorsement c = Endorsement {
+    endorsement :: Cursor -> Endorsement
+    endorsement c = Endorsement {
         eLink     = T.concat $ attribute "data-li-url" c
-      , ePhotoUrl = T.concat . concat $ c $// child &| attribute "src"
+      , ePhotoId  = photoId endorsementPhotoUrl
+      , ePhotoUrl = endorsementPhotoUrl
       }
+      where
+        endorsementPhotoUrl = T.concat . concat $ c $// child &| attribute "src"
 
+
+photoId = T.pack . takeBaseName . T.unpack
 
 getPersonProfile :: Cursor -> Person
 getPersonProfile c = Person {
       pName           = name c
+    , pPhotoId        = photoId $ photoUrl c
     , pPhotoUrl       = photoUrl c
     , pCurrentTitle   = currentTitle c
-    , pCurrentCompany = currentCompany c
+    , pCurrentLocation = currentLocation c
     , pSummary        = summary c
     , pExperiences    = experiences c
     , pSkills         = skills c

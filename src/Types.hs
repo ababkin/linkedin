@@ -11,10 +11,12 @@ data Experience = Experience {
     eTitle    :: Text
   , eCompany  :: Company
   , eSpan     :: Text
+  , eSummary  :: Text
   } deriving Show
 
 data Endorsement = Endorsement {
     eLink     :: Text
+  , ePhotoId  :: Text
   , ePhotoUrl :: Text
   } deriving Show
 
@@ -24,12 +26,13 @@ data Skill = Skill {
   } deriving Show
 
 data Person = Person {
-    pName           :: Text
-  , pPhotoUrl       :: Text
-  , pCurrentTitle   :: Text
-  , pCurrentCompany :: Maybe Company
-  , pSummary        :: Text
-  , pExperiences    :: [Experience]
-  , pSkills         :: [Skill]
+    pName             :: Text
+  , pPhotoId          :: Text
+  , pPhotoUrl         :: Text
+  , pCurrentTitle     :: Text
+  , pCurrentLocation  :: Text
+  , pSummary          :: Text
+  , pExperiences      :: [Experience]
+  , pSkills           :: [Skill]
   } deriving Show
 

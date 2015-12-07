@@ -22,5 +22,7 @@ executable linkedin
     , bytestring
     , containers
     , html-conduit
+    , scotty
     , xml-conduit
+    , filepath
 

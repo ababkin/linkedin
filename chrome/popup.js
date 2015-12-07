@@ -1,7 +1,13 @@
 chrome.runtime.onMessage.addListener(function(request, sender) {
   if (request.action == "getSource") {
-    message.innerText = request.source;
-  }
+    //message.innerText = request.source;
+    var client = new XMLHttpRequest();
+    client.open("POST", "http://localhost:3000/linkedin/profile");
+    client.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+    client.send(request.source);
+    }
+    message.innerText = "done!";
+
 });
 
 function onWindowLoad() {
