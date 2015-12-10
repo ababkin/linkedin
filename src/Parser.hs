@@ -23,7 +23,7 @@ name cursor = head $ cursor $// axis &| extractContent
   where
     axis = element "span"
       >=> attributeIs "class" "full-name"
-      >=> child
+      >=> descendant
 
 photoUrl :: Cursor -> Text
 photoUrl cursor = T.concat . concat $ cursor $// axis &| attribute "src"
@@ -38,13 +38,14 @@ currentTitle cursor = T.concat . concat $ cursor $// axis &| content
   where
     axis = element "p"
       >=> attributeIs "class" "title"
-      >=> child
+      >=> descendant
 
 currentLocation :: Cursor -> Text
 currentLocation cursor = T.concat . concat $ cursor $// axis &| content
   where
-    axis = element "div"
-      >=> attributeIs "id" "location"
+    axis = 
+          element "div" >=> attributeIs "id" "location"
+      &// element "span" >=> attributeIs "class" "locality"
       &// element "a"
       >=> child
 
@@ -54,7 +55,7 @@ summary cursor = T.concat (cursor $// axis &| extractContent)
     axis = element "div" >=> attributeIs "id" "summary-item-view"
       &/ element "div"
       &/ element "p"
-      >=> child
+      >=> descendant
 
 experiences :: Cursor -> [Experience]
 experiences cursor = cursor $// collectionAxis &| experience
@@ -64,13 +65,13 @@ experiences cursor = cursor $// collectionAxis &| experience
       &/  element "div" -- >=> attributeIs "class" "editable-item section-item current-position"
       >=> child
 
-    titleAxis     = element "h4" &/ element "a" >=> child
-    companyAxis   = element "h5" &// element "a" >=> child
+    titleAxis     = element "h4" &/ element "a" >=> descendant
+    companyAxis   = element "h5" &// element "a" >=> descendant
     spanAxis      = element "span" >=> attributeIs "class" "experience-date-locale" >=> descendant
     localityAxis  = element "span" >=> attributeIs "class" "experience-date-locale"
       &/  element "span" >=> attributeIs "class" "locality"
       >=> child
-    summaryAxis   = element "p" >=> child
+    summaryAxis   = element "p" >=> descendant
 
     experience cursor = Experience {
         exTitle    = T.concat $ cursor $// titleAxis &| extractContent
